@@ -1,5 +1,6 @@
 import express from "express";
 import routes from "./routes";
+import "./database"; //conexao com o bd
 class App {
   constructor() {
     this.server = express();
