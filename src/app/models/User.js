@@ -20,6 +20,11 @@ class User extends Model {
     return this;
     //retorna o model que foi inicializado
   }
+
+  //criando referencia user com file é chamado no database/index
+  static associate(models) {
+    this.belongsTo(models.File, { foreignKey: "avatar_id", as: "avatar" });
+  }
   checkPassword(password) {
     return bcrypt.compare(password, this.password_hash);
   }
