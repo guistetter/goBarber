@@ -5,6 +5,7 @@ import File from "../models/File";
 import User from "../models/User";
 
 class AppointmentController {
+  //listagem pro usuario, listagem pro prestador de serviço sera criado em outra rota e controller
   async index(req, res) {
     const { page = 1 } = req.query;
     const appointment = await Appointment.findAll({
