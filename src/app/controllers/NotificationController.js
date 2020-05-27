@@ -19,5 +19,16 @@ class NotificationController {
       .limit(20);
     return res.json(notifications);
   }
+  async update(req, res) {
+    //maracar uma notificacao como lida
+    //buscar notificacao do banco de dados
+    const notification = await Notification.findByIdAndUpdate(
+      req.params.id,
+      { read: true },
+      { new: true } //essa opcao depois de atualizar retorna a nova notificacao atualizada e assim conseguimos listar para usuario
+    );
+
+    return res.json(notification);
+  }
 }
 export default new NotificationController();
