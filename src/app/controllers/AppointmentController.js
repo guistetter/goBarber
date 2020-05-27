@@ -5,6 +5,8 @@ import Appointment from "../models/Appointment";
 import File from "../models/File";
 import User from "../models/User";
 import Notification from "../schemas/Notifications";
+
+import Mail from "../../lib/Mail";
 class AppointmentController {
   //listagem pro usuario, listagem pro prestador de serviço sera criado em outra rota e controller
   async index(req, res) {
@@ -92,7 +94,9 @@ class AppointmentController {
     return res.json({ appointment });
   }
   async delete(req, res) {
-    const appointment = await Appointment.findByPk(req.params.id);
+    const appointment = await Appointment.findByPk(req.params.id, {
+      include: [{ model: User, as: "provider", attributes: ["name", "email"] }],
+    });
 
     if (appointment.user_id !== req.userId) {
       //verificar id do agendamento for diferente do id usuario logado, se for verdade nao pode...
@@ -110,6 +114,13 @@ class AppointmentController {
     }
     appointment.canceled_at = new Date();
     await appointment.save();
+    await Mail.sendMail({
+      to: `${appointment.provider.name}
+      <${appointment.provider.email}
+      >`,
+      subject: "Agendamento cancelado",
+      text: "Voce tem um novo cancelamento",
+    });
     return res.json(appointment);
   }
 }
