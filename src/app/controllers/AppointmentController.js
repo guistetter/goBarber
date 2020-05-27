@@ -1,5 +1,5 @@
 import * as Yup from "yup";
-import { startOfHour, parseISO, isBefore, format } from "date-fns";
+import { startOfHour, parseISO, isBefore, format, subHours } from "date-fns";
 import pt from "date-fns/locale/pt";
 import Appointment from "../models/Appointment";
 import File from "../models/File";
@@ -24,13 +24,13 @@ class AppointmentController {
             {
               model: File,
               as: "avatar",
-              attributes: ["id", "path", "url"],
+              attributes: ["id", "url", "path"],
             },
           ],
         },
       ],
     });
-    return res.json({ appointment });
+    return res.json(appointment);
   }
   async store(req, res) {
     const schema = Yup.object().shape({
@@ -50,7 +50,7 @@ class AppointmentController {
     if (!isProvider) {
       return res
         .status(401)
-        .json({ error: "You can onlye create appointments withe providers" });
+        .json({ error: "You can onlye create appointments with providers" });
     }
     //check for past date
     const hourStart = startOfHour(parseISO(date)); //transforma string em obj date "no insomnia date vem como string"
@@ -90,6 +90,27 @@ class AppointmentController {
       user: provider_id,
     });
     return res.json({ appointment });
+  }
+  async delete(req, res) {
+    const appointment = await Appointment.findByPk(req.params.id);
+
+    if (appointment.user_id !== req.userId) {
+      //verificar id do agendamento for diferente do id usuario logado, se for verdade nao pode...
+      return res.status(401).json({
+        error: "you don't have permission to cancel this appointment.",
+      });
+    }
+    //remover 2 horas antes do agendamento
+    const dateWithSub = subHours(appointment.date, 2);
+    //verificar se agendamento esta a 2h de distancia de agora Date()
+    if (isBefore(dateWithSub, new Date())) {
+      return res.status(401).json({
+        error: "You can only cancel appointments 2 hours in advance",
+      });
+    }
+    appointment.canceled_at = new Date();
+    await appointment.save();
+    return res.json(appointment);
   }
 }
 export default new AppointmentController();
