@@ -1,9 +1,10 @@
 import * as Yup from "yup";
-import { startOfHour, parseISO, isBefore } from "date-fns";
+import { startOfHour, parseISO, isBefore, format } from "date-fns";
+import pt from "date-fns/locale/pt";
 import Appointment from "../models/Appointment";
 import File from "../models/File";
 import User from "../models/User";
-
+import Notification from "../schemas/Notifications";
 class AppointmentController {
   //listagem pro usuario, listagem pro prestador de serviço sera criado em outra rota e controller
   async index(req, res) {
@@ -57,7 +58,6 @@ class AppointmentController {
       //Compara data que deseja marcar horario, com a data atual, se for antes nao pode...
       return res.status(400).json({ error: "Past dates are not permitted" });
     }
-
     //check date availability horario livre...
     const checkAvailability = await Appointment.findOne({
       where: {
@@ -77,6 +77,17 @@ class AppointmentController {
       user_id: req.userId,
       provider_id,
       date,
+    });
+    //Notificar prestador de servico, aqui entra o mongodb
+    const user = await User.findByPk(req.userId);
+    const formattedDate = format(
+      hourStart,
+      "'dia'dd 'de' MMMM', às' H:mm'h' ",
+      { locale: pt }
+    );
+    await Notification.create({
+      content: `Novo agendamento de ${user.name} para ${formattedDate}`,
+      user: provider_id,
     });
     return res.json({ appointment });
   }

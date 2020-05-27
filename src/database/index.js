@@ -3,12 +3,14 @@ import Sequelize from "sequelize";
 import User from "../app/models/User";
 import File from "../app/models/File";
 import Appointment from "../app/models/Appointment";
+import mongoose from "mongoose";
 
 import databaseConfig from "../config/database";
 const models = [User, File, Appointment];
 class Database {
   constructor() {
     this.init();
+    this.mongo();
   }
   init() {
     this.connection = new Sequelize(databaseConfig);
@@ -17,6 +19,16 @@ class Database {
       .map(
         (model) => model.associate && model.associate(this.connection.models) //necessario para associar avatar com User
       );
+  }
+  mongo() {
+    this.mongoConnection = mongoose.connect(
+      //nao precisamos passar senha, gobarber novo é o nome da database
+      "mongodb://localhost:27017/gobarbernovo",
+      {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      }
+    );
   }
 }
 export default new Database();
