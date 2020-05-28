@@ -6,7 +6,10 @@ import File from "../models/File";
 import User from "../models/User";
 import Notification from "../schemas/Notifications";
 
-import Mail from "../../lib/Mail";
+//import Mail from "../../lib/Mail";
+import CancellationMail from "../jobs/CancellationMail";
+import Queue from "../../lib/Queue";
+
 class AppointmentController {
   //listagem pro usuario, listagem pro prestador de serviço sera criado em outra rota e controller
   async index(req, res) {
@@ -124,21 +127,11 @@ class AppointmentController {
       });
     }
     appointment.canceled_at = new Date();
+
     await appointment.save();
-    await Mail.sendMail({
-      to: `${appointment.provider.name}
-      <${appointment.provider.email}
-      >`,
-      subject: "Agendamento cancelado",
-      //text: "Voce tem um novo cancelamento",
-      template: "cancellation",
-      context: {
-        provider: appointment.provider.name,
-        user: appointment.user.name,
-        date: format(appointment.date, "'dia'dd 'de' MMMM', às' H:mm'h' ", {
-          locale: pt,
-        }),
-      },
+
+    await Queue.add(CancellationMail.key, {
+      appointment,
     });
     return res.json(appointment);
   }
