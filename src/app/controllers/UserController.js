@@ -1,4 +1,5 @@
 import User from "../models/User";
+import File from "../models/File";
 import * as Yup from "yup";
 class UserController {
   //criar usuario
@@ -69,11 +70,20 @@ class UserController {
     if (oldPassword && !(await user.checkPassword(oldPassword))) {
       return res.status(401).json({ error: "Password does not match" });
     }
+    await user.update(req.body);
 
-    const { id, name, provider } = await user.update(req.body);
+    const { id, name, avatar, provider } = await User.findByPk(req.userId, {
+      include: [
+        {
+          model: File,
+          as: "avatar",
+          attributes: ["id", "path", "url"],
+        },
+      ],
+    });
 
     //console.log(req.userId);
-    return res.json({ id, name, email, provider });
+    return res.json({ id, name, email, avatar, provider });
   }
 }
 export default new UserController();

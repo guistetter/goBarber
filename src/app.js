@@ -6,6 +6,7 @@ import "express-async-errors"; //Obrigatorio ver antes das rotas
 import routes from "./routes";
 import sentryConfig from "./config/sentry";
 import "./database"; //conexao com o bd
+import cors from "cors";
 class App {
   constructor() {
     this.server = express();
@@ -16,6 +17,8 @@ class App {
   }
   middlewares() {
     this.server.use(Sentry.Handlers.requestHandler()); //obrigatoriamente vem antes das rotas !
+    this.server.use(cors());
+    //this.server.use(cors({"www.meuapp.com.br"}))
     this.server.use(express.json());
     this.server.use(
       "/files",
