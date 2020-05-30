@@ -17,7 +17,7 @@ class AvailableController {
     }
     const searchDate = Number(date); //transformando o date que vem pelo req.query como timestemp em um inteiro
     //2020-06-23 17:59:33
-    const appointments = await Appointment.finddAll({
+    const appointments = await Appointment.findAll({
       //horarios agendados se estiver null o horario não esta disponivel
       where: {
         provider_id: req.params.providerId,
